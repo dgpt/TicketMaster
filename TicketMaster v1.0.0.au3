@@ -1,0 +1,3 @@
+; Options...
+Opt(GUICoordMode, 0) 	; coords are relative to the start of last control (upper left corner)
+Opt(GUIOnEventMode, 1)  ; enable the OnEvent function notifications
