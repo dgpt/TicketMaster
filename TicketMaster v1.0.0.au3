@@ -1,6 +1,9 @@
 #include <Array.au3>
 #include <GUIConstantsEx.au3>
 #include <EditConstants.au3>
+#include <WindowsConstants.au3>
+
+#include "TMGUI.au3"
 
 #CS
 Notes:
@@ -20,41 +23,39 @@ Future releases:
 Opt("GUICoordMode", 0) 	; coords are relative to the start of last control (upper left corner)
 Opt("GUIOnEventMode", 1)  ; enable the OnEvent function notifications
 
-; Set arrays
-Global $s99_array[1] = [0]
-Global $open_array[1] = [0]
-Global $xfer_array[1] = [0]
-Global $nvm_array[1] = [0]
-Global $masteroff_array[1] = [0]
-Global $gs_array[1] = [0]
-Global $gs_eid_array[1] = [0]
-Global $ad_array[1] = [0]
-Global $ad_eid_array[1] = [0]
-Global $dp_array[1] = [0]
+Local Const $MAX_INDEX = 128
+Local $struct_vars = StringReplace("int s99[%d];int open[%d];int xfer[%d]", "%d", $MAX_INDEX)
+Global $ticket_struct = DllStructCreate($struct_vars)
 
 ; Holds string data for all tickets that show up in $main_list (seperate with |)
-Global Const $ALL_TICKETS = "99 Session Logout|Transfer|Nevermind|Master Off|DP|Open Tickets"
-
-; Create GUI Components
-Local Const $BUTTON_WIDTH = 50
-
-Global $window_main = GUICreate("Ticket Master", 200, 250)
-Global $input_main = GUICtrlCreateInput("", 10, 10, 70, 150, $ES_MULTILINE)
-Global $list_main = GUICtrlCreateList("", 80, 0, 100, 150)
-GUICtrlSetData(-1, $ALL_TICKETS)
-Global $button_go = GUICtrlCreateButton("Go", 0, 155, $BUTTON_WIDTH)
-Global $button_
-GUISetState(@SW_SHOW)
+Global Const $TICKET_99 = "99 Session Logout"
+Global Const $TICKET_XFER = "Transfer"
+Global Const $TICKET_NVM = "Nevermind"
+Global Const $TICKET_MO = "Master Off"
+Global Const $TICKET_DP = "DP"
+Global Const $TICKET_OPEN = "Open Tickets"
+Local Const $ALL_TICKETS[6] = [$TICKET_99, $TICKET_XFER, $TICKET_NVM, $TICKET_MO, $TICKET_DP, $TICKET_OPEN]
+Local Const $ALL_TICKETS_STRING = _ArrayToString($ALL_TICKETS)
 
 
-; Bind Events!
-GUISetOnEvent($GUI_EVENT_CLOSE, "AppExit")
+TMStart()
 
-While 1
-   Sleep(800)
-WEnd
 
-Func AppExit()
+; EVENTS
+Func OnAppExit()
     Exit
 EndFunc
+
+Func OnListChange()
+    Local $item = GUICtrlRead($list_main)
+    If $item == "" Then
+        return
+    EndIf
+    If GUICtrlGetState($input_main) == 144 Then     ;144 is the state when input_main is disabled... ($GUI_DISABLE = 128)
+        GUICtrlSetState($input_main, $GUI_ENABLE)
+    EndIf
+
+EndFunc
+
+; UTILS
 
