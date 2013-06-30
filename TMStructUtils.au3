@@ -29,15 +29,14 @@ EndFunc
 
 
 ; Set all elements of given array in given struct to 0
-; TM will view values of 0 as empty
+; Loop as little as possible, while effectively cleaning out the array
 Func ClearArray(ByRef $struct, $ticket)
     Local $var = RouteArray($ticket)
-    For $i = 1 To $MAX_INDEX
-        ; Break if we encounter an empty index so we don't have to loop over 100x for nothing.
-        If DllStructGetData($struct, $var, $i) == 0 Then
-            ExitLoop
-        EndIf
-        DllStructSetData($struct, $var, 0)
+    ; Set the limit for the loop to the first member of the array
+    ; Which we can assume is the length of the array 
+    Local $limit = DllStructGetData($struct, $var, 1)
+    For $i = 1 To $limit + 1
+        DllStructSetData($struct, $var, 0, $i)
         If @error Then
             MsgBox(0, "", "Error in ClearArray at i=" & $i & " error: " & _HandleStructError(@error))
             return 0
@@ -51,8 +50,8 @@ EndFunc
 Func SetArray(ByRef $struct, $ticket, ByRef $array)
     ClearArray($struct, $ticket)
     Local $var = RouteArray($ticket)
-    For $i = 1 To $array[0] 
-        DllStructSetData($struct, $var, $array[$i], $i)
+    For $i = 0 To $array[0]
+        DllStructSetData($struct, $var, $array[$i], $i + 1)
         If @error Then
             MsgBox(0, "", "Error in SetArray at i=" & $i & " error: " & _HandleStructError(@error))
             return 0
@@ -64,15 +63,18 @@ EndFunc
 Func GetArray(ByRef $struct, $ticket)
     Local $var = RouteArray($ticket)
     Local $result[1] = [0]
-    For $i = 1 To $MAX_INDEX
+    Local $limit = DllStructGetData($struct, $var, 1)
+    Local $length = 0
+    ; set $i to 2 so we can get an accurate length
+    ; because we ignore @CRLFs and 0 values
+    For $i = 2 To $limit + 1
         Local $data = DllStructGetData($struct, $var, $i)
-        If $data == 0 Then
-            ExitLoop
-        Else
+        If $data <> 0 Then
             _ArrayAdd($result, $data)
+            $length += 1
         EndIf
     Next
-    $result[0] = UBound($result) - 1
+    $result[0] = $length
     return $result
 EndFunc
 

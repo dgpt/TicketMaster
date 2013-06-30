@@ -42,11 +42,11 @@ Opt("GUICoordMode", 0) 	; coords are relative to the start of last control (uppe
 Opt("GUIOnEventMode", 1)  ; enable the OnEvent function notifications
 
 ; Main Struct setup. Contains all arrays used for tickets.
-Global Const $MAX_INDEX = 128
+Local Const $MAX_INDEX = 128
 Local $struct_vars = StringReplace("uint s99[%d];uint xfer[%d];uint nvm[%d];uint mo[%d];uint dp[%d];uint open[%d]", "%d", $MAX_INDEX)
 Global $ticket_struct = DllStructCreate($struct_vars)
 
-; MsgBox(0, "", DllStructGetSize($ticket_struct))
+; DbgMsg(DllStructGetSize($ticket_struct))
 
 ; TICKET CONSTANTS
 ; Use these whenever you need to describe a ticket
