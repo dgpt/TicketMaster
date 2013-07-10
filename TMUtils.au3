@@ -20,7 +20,6 @@ Various utilities
 Func ParseInput(ByRef $input)
     Local $text = GUICtrlRead($input)
     Local $result = StringSplit($text, @CRLF, 1)
-    ;_ArrayDisplay($result)
     ; @error = 1 when @CRLF is not found
     If @error == 1 Then
         Local $result[1] = [0]
@@ -52,13 +51,13 @@ Func LogArray(ByRef $array)
     Local $logpath = GetPref("log_path")
     Local $logfile = FileOpen($logpath, GetPref("log_append"))
     If $logfile = -1 Then
-        DbgMsg("Unable to open file " & $logpath)
+        ErrMsg(-1, "LogArray", "Unable to open file " & $logpath)
         return 0
     EndIf
     ; Writes date/time and results to log file from prefs.
     Local $write_success = FileWrite($logfile, GetDateTime() & $result & @CRLF)
     If $write_success = 0 Then
-        DbgMsg("Error in writing to file " & $logpath)
+        ErrMsg(0, "LogArray", "Error in writing to file " & $logpath)
         return 0
     EndIf
     FileClose($logfile)
@@ -146,8 +145,7 @@ Func ClearArray(ByRef $struct, $ticket)
     Local $limit = DllStructGetData($struct, $var, 1)
     For $i = 1 To $limit + 1
         DllStructSetData($struct, $var, 0, $i)
-        If @error Then
-            MsgBox(0, "", "Error in ClearArray at i=" & $i & " error: " & _HandleStructError(@error))
+        If CheckError(@error, "ClearArray", "Error:" & _HandleStructError(@error)) Then
             return 0
         EndIf
     Next
@@ -161,8 +159,7 @@ Func SetArray(ByRef $struct, $ticket, ByRef $array)
     Local $var = RouteArray($ticket)
     For $i = 0 To $array[0]
         DllStructSetData($struct, $var, $array[$i], $i + 1)
-        If @error Then
-            MsgBox(0, "", "Error in SetArray at i=" & $i & " error: " & _HandleStructError(@error))
+        If CheckError(@error, "SetArray", "Error: " & _HandleStructError(@error)) Then
             return 0
         EndIf
     Next

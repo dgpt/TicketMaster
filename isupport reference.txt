@@ -1,6 +1,0 @@
-Open a new incident:
-OpenEntityWindow(16, 0); HideBigMenu(); return false;
-
-
-Top Link
-uxCustomerSelect_uxListView_Customers_ctrl0_uxLinkButton_Select
