@@ -49,8 +49,8 @@ Func LogArray(ByRef $array)
         $result = $result & $array[$i] & @CRLF
     Next
     ; Opens log file from preferences, handles errors
-    Local $logpath = GetPref("logpath")
-    Local $logfile = FileOpen($logpath, GetPref("logappend"))
+    Local $logpath = GetPref("log_path")
+    Local $logfile = FileOpen($logpath, GetPref("log_append"))
     If $logfile = -1 Then
         DbgMsg("Unable to open file " & $logpath)
         return 0

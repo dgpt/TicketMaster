@@ -6,7 +6,7 @@
 ; Load IE to gwi7/rep
 ; Should be called once per session
 Func TicketInit()
-    Global $ie_obj = _IECreate("gwi7/rep", GetPref("ieattach"))
+    Global $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
     Global $ie_hwnd = _IEPropertyGet($ie_obj, "hwnd")
     WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
     _TicketOpen(1102)
