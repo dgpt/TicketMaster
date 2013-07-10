@@ -9,7 +9,8 @@ Func TicketInit()
     Global $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
     Global $ie_hwnd = _IEPropertyGet($ie_obj, "hwnd")
     WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
-    _TicketOpen(1102)
+    _TicketOpen(11000000)
+    CheckError(@error, "TicketInit")
 EndFunc
 
 ; sets up ticket, calls given function to do details
@@ -32,9 +33,10 @@ EndFunc
 ;   Success: 1
 ;   Failure: 0
 ; @error:
-;   0: Could not find ticket
-;   1: Error creating dialog object
-;   2: Error creating form object
+;   1: Could not find ticket
+;   2: Error creating dialog object
+;   3: Error creating form object
+;   4: Error creating input object
 ;   5: Unknown Error
 Func _TicketOpen($store)
     ; Set constants - used multiple times
@@ -49,17 +51,17 @@ Func _TicketOpen($store)
     ; Handle all possible errors
     Local $dialog_obj = _IEAttach($dialog_title)
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create dialog object.") Then
-        SetError(1)
+        SetError(2)
         return 0
     EndIf
     Local $dialog_form = _IEFormGetObjByName($dialog_obj, "frmSelectCustomer") 
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create form object.") Then
-        SetError(2)
+        SetError(3)
         return 0
     EndIf
     Local $dialog_input = _IEFormElementGetObjByName($dialog_form, "uxCustomerSelect$uxTextBox_SearchText")
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create input object.") Then
-        SetError(3)
+        SetError(4)
         return 0
     EndIf
     ; Enter store info in input
@@ -80,7 +82,7 @@ Func _TicketOpen($store)
             _IEAction($dialog_toplink, "click")
             return 1
         Else
-            SetError(0)
+            SetError(1)
             return 0
         EndIf
     EndIf

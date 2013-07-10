@@ -84,9 +84,9 @@ EndFunc
 Func ErrMsg($error, $loc, $message = "")
     Local $m
     If $message == "" Then
-        $m = "Error occured in " & $loc & ". Error code: " & $error
+        $m = "Error occured at " & $loc & @CRLF & "Error code: " & $error
     Else
-        $m = "Error occured in " & $loc & ". Error code: " & $error & @CRLF & $message
+        $m = "Error occured at " & $loc & @CRLF & "Error code: " & $error & @CRLF & $message
     EndIf
     MsgBox(0x10, "Error at " & $loc, $m)
 EndFunc

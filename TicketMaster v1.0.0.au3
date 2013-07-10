@@ -11,7 +11,7 @@
 #CS
 Notes:
 ARRAYS:
-All arrays are 1-based index. Position [0] contains the length of the array.
+All arrays have a 1-based index. Position [0] contains the length of the array.
 
 REGARDING NUMBERS:
 All entered numbers have a max value of 4294967295. I will have to change this
@@ -25,11 +25,15 @@ ADDING NEW TICKETS:
 3. Add to $ticket_struct_vars
 4. Add to RouteArray
 
+___________________________________________________________________________________
 TODO:
 - Create preferences GUI
 - Start with automations
 - Start with IE automation, provide usage with Chrome as well.
 
+TICKET CREATION:
+- Gather up all errors with error code + store number. Display all errors at the end.
+- Watch for 'error' isupport pages, report those with errors.
 
 #CE
 

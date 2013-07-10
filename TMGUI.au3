@@ -35,7 +35,8 @@ Func TMInit()
     GUICtrlSetData($list_main, $ALL_TICKETS_STRING)
     Global $input_main = GUICtrlCreateInput("", 110, 0, $INPUT_WIDTH, $INPUT_HEIGHT, $ES_MULTILINE + $ES_WANTRETURN + $WS_VSCROLL)
     GUICtrlSetState($input_main, $GUI_DISABLE)  ; Disable input until a ticket category is selected
-    Local $button_go = GUICtrlCreateButton("Go", -95, 175, $BUTTON_WIDTH, $BUTTON_HEIGHT)
+    Global $button_go = GUICtrlCreateButton("Go", -95, 175, $BUTTON_WIDTH, $BUTTON_HEIGHT)
+    GUICtrlSetState($button_go, $GUI_DISABLE)   ; Disable button until ticket is selected
 
     ; Bind Events!
     ;GUI Events
@@ -88,9 +89,11 @@ Func OnListChange()
         SetTicketArray($LAST_TICKET_SELECTED, ParseInput($input_main))
     EndIf
     
-    ; Enable input if it's disabled
+    ; Enable input and button if input is disabled
     If GUICtrlGetState($input_main) == 144 Then     ;144 is the state when input_main is disabled... ($GUI_DISABLE = 128)
         GUICtrlSetState($input_main, $GUI_ENABLE)
+        ; We can assume the button is disabled when the input is disabled
+        GUICtrlSetState($button_go, $GUI_ENABLE)
     EndIf
 
     ; Clear input
