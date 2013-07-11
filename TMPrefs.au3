@@ -7,7 +7,7 @@ Holds Prefs UI and various related things.
 ;; Mainly so we don't have to inject pref_struct into GetPref.
 ; Preference struct variable names need to match names in the config file
 ; Hard-coding array lengths for now... Change it if necessary.
-Local Const $pref_struct_vars = "char log_path[255]; uint log_append; uint ie_attach; uint dialog_sleep_time;"
+Local Const $pref_struct_vars = "char log_path[200]; uint log_append; uint ie_attach; uint dialog_sleep_time; char link_s99[60]; char link_mo[60];"
 Global $pref_struct = DllStructCreate($pref_struct_vars)
 
 Func PrefInit()

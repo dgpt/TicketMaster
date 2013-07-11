@@ -75,4 +75,5 @@ TMStart()
 ; Loop through arrays, call proper ticket procedure
 Func ProcessTickets()
     TicketInit()
+    TicketCreate(110, "s99")
 EndFunc

@@ -8,23 +8,71 @@
 
 ;; "Public" Methods
 
-; Load IE to gwi7/rep
-; Should be called once per session
 Func TicketInit()
+
+#CS
+Load IE to gwi7/rep
+Should be called once per session
+#CE
+
     Global $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
     Global $ie_hwnd = _IEPropertyGet($ie_obj, "hwnd")
+    Global $ie_doc = _IEDocGetObj($ie_obj)
     WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
 EndFunc
 
-; sets up ticket, calls given function to do details
-Func TicketCreate($store, $type)
+Func TicketCreate($store, ByRef $type)
+
+#CS
+'Skeleton' method for creating tickets
+Sets up ticket, calls given function to do details
+
+@error:
+    0: No error
+    1: Ticket failed to open
+    2: Timed out while loading ticket in iSupport
+#CE
+
     Local $ticket = _TicketOpen($store)
-    CheckError(@error, "TicketCreate", "Failed to open ticket")
-    ;Call($type)
+    If CheckError(@error, "TicketCreate", "Failed to open ticket") Then
+        SetError(1)
+        return 0
+    EndIf
+ 
+    ; Make sure the ticket has loaded into iSupport before continuing
+    ; Give it 5 seconds before throwing an error and returning.
+    ; Use this nifty while loop to make it happen faster.
+    Local $loop_stopper = 0
+    Local $loop_limit = 5000
+    Local $loop_inc = 100
+    While StringInStr(_IEPropertyGet($ticket, "title"), $store) == 0
+        If $loop_stopper >= $loop_limit Then
+            SetError(2)
+            return 0
+        EndIf
+        Sleep($loop_inc)
+        $loop_stopper += $loop_inc
+    WEnd
+
+    ; According to AutoIt documentation, Call() does not support ByRef params.
+    ; But... it seems to work fine, so let's roll with it.
+    Call("_TicketType_" & $type, $ticket)
 EndFunc
 
-; Exits gracefully
 Func TicketExit()
+; Exits gracefully
+
+EndFunc
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; High-Level Ticket Procedures ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Names of these functions are based off of $ticket_struct variable names
+; prefixed with '_TicketType_', so we can call them easily.
+
+Func _TicketType_s99(ByRef $ticket)
+    _TicketOpenTemplate($ticket)
 
 EndFunc
 
@@ -34,30 +82,33 @@ EndFunc
 
 Func _TicketOpen($store)
 
-; Opens up a new ticket, assigns to given store.
-; If an error occurs, close all opened windows.
-; Return:
-;   Success: IE Object for New Ticket
-;   Failure: 0
-; @error:
-;   0: No Error
-;   1: Could not find ticket
-;   2: Error creating dialog object
-;   3: Error creating form object
-;   4: Error creating input object
-;   5: Error creating newTicket object
-;   9: Unknown Error
+#CS
+Opens up a new ticket, assigns to given store.
+If an error occurs, close all opened windows.
+Return:
+    Success: IE Object for New Ticket
+    Failure: 0
+@error:
+    0: No Error
+    1: Could not find ticket
+    2: Error creating dialog object
+    3: Error creating form object
+    4: Error creating input object
+    5: Error creating newTicket object
+    9: Unknown Error
+#CE
 
-    ; Set constants - used multiple times
+    ; Set constants
     ; If these are wrong, the program will stall.
     Local Const $dialog_title = "Dialog - Select Customer"
     Local Const $dialog_toplink_id = "uxCustomerSelect_uxListView_Customers_ctrl0_uxLinkButton_Select"
     Local Const $newTicket_title = "New Incident Ticket"
     ; Activate main window, send <C-N> to make a new ticket (only supported in IE)
+    ; Instead of JS injection, because it doesn't work right in IE
     WinActivate($ie_hwnd)
     Send("^n")
     ; Wait for dialog pop up
-    WinWaitActive($dialog_title)
+    WinWaitActive($dialog_title, "", 5)
     ; Create reference to new ticket
     Local $newTicket = _IEAttach($newTicket_title)
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create newTicket object.") Then
@@ -118,4 +169,21 @@ Func _TicketOpen($store)
     _IEQuit($newTicket)
     SetError(9)
     return 0
+EndFunc
+
+Func _TicketOpenTemplate(ByRef $ticket)
+
+#CS
+Opens template dialog in iSupport for given IE ticket obj
+Input:
+    IE Ticket Object
+Returns:
+    Success: 1
+    Failure: 0
+#CE
+    _IENavigate($ticket, "javascript:useTemplate();")
+EndFunc
+
+Func _TicketCloseCallScript()
+
 EndFunc
