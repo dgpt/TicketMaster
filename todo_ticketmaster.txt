@@ -1,4 +1,0 @@
-Create module to read tickets from excel file.
-(In the future possibly tie python in to read and parse a txt note file instead, and of course give the option to switch)
-
-
