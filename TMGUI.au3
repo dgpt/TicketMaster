@@ -148,6 +148,7 @@ EndFunc
 Func OnGo()
     OnSave()
     ProcessTickets()
+    OnClearAll()
 EndFunc
 
 Func OnPref()

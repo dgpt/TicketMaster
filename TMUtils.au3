@@ -128,6 +128,15 @@ Func RouteArray($ticket)
         Case $ticket == $TICKET_OPEN
             return "open"
 
+        Case $ticket == $TICKET_TCU
+            return "tcu"
+
+        Case $ticket == $TICKET_GCO
+            return "gco"
+
+        cASE $ticket == $TICKET_PROC
+            return "proc"
+
         Case Else
             MsgBox(0, "", "ERROR: RouteArray value not determined. Returning 'open'")
             return "open"

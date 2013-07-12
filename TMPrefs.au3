@@ -6,9 +6,10 @@ Holds Prefs UI and various related things.
 ; Need to declare pref_struct immediately so other functions can access it
 ;; Mainly so we don't have to inject pref_struct into GetPref.
 ; Preference struct variable names need to match names in the config file
-; Hard-coding array lengths for now... Change it if necessary.
-Local Const $pref_struct_vars = "char log_path[200]; uint log_append; uint ie_attach; uint dialog_sleep_time; char link_s99[60]; char link_mo[60];"
+Local Const $MAX_PREF_CHAR = 60
+Local Const $pref_struct_vars = StringReplace("char log_path[200]; uint log_append; uint ie_attach; uint dialog_sleep_time; uint dialog_load_time; uint ticket_load_time; char link_s99[%d]; char link_xfer[%d]; char link_nvm[%d]; char link_mo[%d]; char link_dp[%d]; char link_tcu[%d]; char link_gco[%d]; char link_proc[%d]; char link_open", "%d", $MAX_PREF_CHAR)
 Global $pref_struct = DllStructCreate($pref_struct_vars)
+;DbgMsg("$pref_struct size: " & DllStructGetSize($pref_struct) & " bytes.")
 
 Func PrefInit()
     Local Const $config_path = "TMConfig.ini"
@@ -52,8 +53,7 @@ Func LoadPrefs(ByRef $struct, $config_path)
         Local $prefs = IniReadSection($config_path, $section_names[$j])
         For $i = 1 To $prefs[0][0]
             DllStructSetData($struct, $prefs[$i][0], $prefs[$i][1])
-            If @error Then
-                MsgBox(0, "", "Error in LoadPreferences. error: " & _HandleStructError(@error))
+            If CheckError(@error, "LoadPrefs", _HandleStructError(@error)) Then
                 return 0
             EndIf
         Next
@@ -63,8 +63,7 @@ EndFunc
 ; Easier way to get prefs from $pref_struct (also handles errors)
 Func GetPref($pref)
     Local $result = DllStructGetData($pref_struct, $pref)
-    If @error Then
-        MsgBox(0, "", "Error in GetPreference. error: " & _HandleStructError(@error))
+    If CheckError(@error, "GetPref", _HandleStructError(@error)) Then
         return 0
     EndIf
     return $result

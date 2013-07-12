@@ -9,6 +9,15 @@
 #include "TMPrefs.au3"
 
 #CS
+FOR OPTIMAL RESULTS:
+Keep main iSupport page in the first tab spot
+This script assumes that main iSupport page is first
+and will switch to that page before creating a new ticket.
+
+Most of the automation takes place in the background,
+When creating a new ticket or finishing a ticket, however, it requires the window to be active.
+
+
 Notes:
 ARRAYS:
 All arrays have a 1-based index. Position [0] contains the length of the array.
@@ -26,15 +35,18 @@ TicketMaster File
 3. Add to $ticket_struct_vars
 Utils
 4. Add to RouteArray
+TMConfig.ini
+5. Add 'link_' + var name = ticket link text
+Prefs
+6. Add var name to pref struct
 TMProcedures
-5. Add High-Level Procedure
+7. Add '_TicketType_' + var name High-Level Procedure
 
 
 ___________________________________________________________________________________
 TODO:
 - Create preferences GUI
-- Start with automations
-- Start with IE automation, provide usage with Chrome as well.
+- provide support for Chrome. (Future release, will have to build a new module)
 
 TICKET CREATION:
 - Gather up all errors with error code + store number. Display all errors at the end.
@@ -52,9 +64,10 @@ Opt("GUIOnEventMode", 1)  ; enable the OnEvent function notifications
 
 ; Main Struct setup. Contains all arrays used for tickets.
 ; Max length for arrays
-Local Const $MAX_TICKET_INT = 128
-Local Const $ticket_struct_vars = StringReplace("uint s99[%d];uint xfer[%d];uint nvm[%d];uint mo[%d];uint dp[%d];uint open[%d]", "%d", $MAX_TICKET_INT)
+Local Const $MAX_TICKET_INT = 90
+Local Const $ticket_struct_vars = StringReplace("uint s99[%d]; uint xfer[%d]; uint nvm[%d]; uint mo[%d]; uint dp[%d]; uint open[%d]; uint tcu[%d]; uint gco[%d]; uint proc[%d]", "%d", $MAX_TICKET_INT)
 Global $ticket_struct = DllStructCreate($ticket_struct_vars)
+;DbgMsg("$ticket_struct size: " & DllStructGetSize($ticket_struct) & " bytes.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -68,8 +81,11 @@ Global Const $TICKET_NVM = "Nevermind"
 Global Const $TICKET_MO = "Master Off"
 Global Const $TICKET_DP = "DP"
 Global Const $TICKET_OPEN = "Open Tickets"
+Global Const $TICKET_TCU = "TC AD Unlock"
+Global Const $TICKET_GCO = "Gear Card Offset"
+Global const $TICKET_PROC = "Procedural Request"
 ; Constants listing all ticket types.
-Global Const $ALL_TICKETS[6] = [$TICKET_99, $TICKET_XFER, $TICKET_NVM, $TICKET_MO, $TICKET_DP, $TICKET_OPEN]
+Global Const $ALL_TICKETS[9] = [$TICKET_99, $TICKET_XFER, $TICKET_NVM, $TICKET_MO, $TICKET_DP, $TICKET_TCU, $TICKET_GCO, $TICKET_PROC, $TICKET_OPEN]
 Local Const $ALL_TICKETS_STRING = _ArrayToString($ALL_TICKETS)
 
 
@@ -80,5 +96,15 @@ TMStart()
 ; Loop through arrays, call proper ticket procedure
 Func ProcessTickets()
     TicketInit()
-    TicketCreate(858, "s99")
+    For $ticket In $ALL_TICKETS
+        Local $array = GetTicketArray($ticket)
+        For $i = 1 To $array[0]
+            ; Make sure we are sending a 3-digit store number to avoid
+            ; unwanted tickets being created.
+            If StringRegExp($array[$i], "\d{3}") Then
+                TicketCreate($array[$i], RouteArray($ticket))
+            EndIf
+        Next
+    Next
+    TicketExit()
 EndFunc

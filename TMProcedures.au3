@@ -13,11 +13,23 @@ Func TicketInit()
 #CS
 Load IE to gwi7/rep
 Should be called once per session
+
+Returns:
+Fail
 #CE
 
-    Local $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
+    Global $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
+    If CheckError(@error, "TicketInit", "Failed to create main IE object") Then
+        return 0
+    EndIf
+    Local $attached = @extended
     Global $ie_hwnd = _IEPropertyGet($ie_obj, "hwnd")
-    WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
+    If $attached Then
+        WinActivate($ie_hwnd)
+        Send("^1")
+    Else
+        WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
+    EndIf
 EndFunc
 
 Func TicketCreate($store, ByRef $type)
@@ -42,7 +54,7 @@ Sets up ticket, calls given function to do details
     ; Give it 5 seconds before throwing an error and returning.
     ; Use this nifty while loop to make it happen faster.
     Local $loop_stopper = 0
-    Local $loop_limit = 5000
+    Local $loop_limit = GetPref("ticket_load_time")
     Local $loop_inc = 100
     While StringInStr(_IEPropertyGet($ticket, "title"), $store) == 0
         If $loop_stopper >= $loop_limit Then
@@ -56,6 +68,10 @@ Sets up ticket, calls given function to do details
     ; According to AutoIt documentation, Call() does not support ByRef params.
     ; But... it seems to work fine, so let's roll with it.
     Call("_TicketType_" & $type, $ticket, GetPref("link_" & $type))
+    
+    Sleep(1000)
+    WinActivate($ie_hwnd)
+    Send("^1")
 EndFunc
 
 Func TicketExit()
@@ -71,31 +87,42 @@ EndFunc
 ; prefixed with '_TicketType_', so we can call them easily.
 
 Func _TicketType_s99(ByRef $ticket, ByRef $type)
-    _TicketType_AutoClose($ticket, $type)
+    _TicketSelectTemplate($ticket, $type)
+EndFunc
+
+Func _TicketType_xfer(ByRef $ticket, ByRef $type)
+    _TicketSelectTemplate($ticket, $type)
+EndFunc
+
+Func _TicketType_nvm(ByRef $ticket, ByRef $type)
+    _TicketSelectTemplate($ticket, $type)
 EndFunc
 
 Func _TicketType_mo(ByRef $ticket, ByRef $type)
-    _TicketType_AutoClose($ticket, $type)
+    _TicketSelectTemplate($ticket, $type)
 EndFunc
 
-Func _TicketType_AutoClose(ByRef $ticket, ByRef $type)
-#CS
-Opens template dialog, selects given template.
-Loops through all links in template dialog to match the given type
-
-Input:
-$ticket - reference to IE object for the current ticket
-$type - type of ticket. String of link text. (Get from preferences)
-#CE
-    Local $template_dialog = _TicketOpenTemplate($ticket)
-    Local $link_collection = _IELinkGetCollection($template_dialog)
-    For $link In $link_collection
-        If $link.innerhtml == $type Then
-            _IEAction($link, "click")
-            Exit
-        EndIf
-    Next
+; NOT COMPLETE
+Func _TicketType_dp(ByRef $ticket, ByRef $type)
+    _TicketSelectTemplate($ticket, $type)
 EndFunc
+
+Func _TicketType_tcu(ByRef $ticket, ByRef $type)
+    _TicketSelectTemplate($ticket, $type)
+EndFunc
+
+Func _TicketType_gco(ByRef $ticket, ByRef $type)
+    _TicketSelectTemplate($ticket, $type)
+EndFunc
+
+Func _TicketType_proc(ByRef $ticket, ByRef $type)
+    _TicketSelectTemplate($ticket, $type)
+EndFunc
+
+Func _TicketType_open(ByRef $ticket, ByRef $type)
+    ; Do nothing
+EndFunc
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -107,6 +134,8 @@ Func _TicketOpen($store)
 #CS
 Opens up a new ticket, assigns to given store.
 If an error occurs, close all opened windows.
+Input:
+    $store - store number
 Return:
     Success: IE Object for New Ticket
     Failure: 0
@@ -117,6 +146,7 @@ Return:
     3: Error creating form object
     4: Error creating input object
     5: Error creating newTicket object
+    6: Timeout waiting for Dialog window
     9: Unknown Error
 #CE
 
@@ -130,7 +160,11 @@ Return:
     WinActivate($ie_hwnd)
     Send("^n")
     ; Wait for dialog pop up
-    WinWaitActive($dialog_title, "", 5)
+    Local $dialog_hwnd = WinWaitActive($dialog_title, "", GetPref("dialog_load_time"))
+    If $dialog_hwnd = 0 Then
+        SetError(6)
+        return 0
+    EndIf
     ; Create reference to new ticket
     Local $newTicket = _IEAttach($newTicket_title)
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create newTicket object.") Then
@@ -140,7 +174,7 @@ Return:
     ; Create objects for dialog window, form, and text input
     ; Handle all possible errors
     ; Quit opened new ticket win
-    Local $dialog_obj = _IEAttach($dialog_title)
+    Local $dialog_obj = _IEAttach($dialog_hwnd, "HWND")
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create dialog object.") Then
         _IEQuit($newTicket)
         SetError(2)
@@ -205,7 +239,7 @@ Returns:
 #CE
     Local Const $template_title = "Dialog - Use Incident Template"
     _IENavigate($ticket, "javascript:useTemplate();", 0)
-    Local $result = WinWait($template_title, "", 5)
+    Local $result = WinWait($template_title, "", 10)
     If $result = 0 Then
         return 0
     Else
@@ -216,6 +250,30 @@ Returns:
         _IELoadWait($template)
         return $template
     EndIf
+EndFunc
+
+Func _TicketSelectTemplate(ByRef $ticket, ByRef $type)
+#CS
+Opens template dialog, selects given template.
+Loops through all links in template dialog to match the given type
+
+Input:
+    $ticket - reference to IE object for the current ticket
+    $type - type of ticket. String of link text. (Get from preferences)
+
+Returns:
+    Success: 1
+    Failure: 0
+#CE
+    Local $template_dialog = _TicketOpenTemplate($ticket)
+    Local $link_collection = _IELinkGetCollection($template_dialog)
+    For $link In $link_collection
+        If $link.innerhtml == $type Then
+            _IEAction($link, "click")
+            return 1
+        EndIf
+    Next
+    return 0
 EndFunc
 
 Func _TicketCloseCallScript()
