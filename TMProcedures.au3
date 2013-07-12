@@ -15,9 +15,8 @@ Load IE to gwi7/rep
 Should be called once per session
 #CE
 
-    Global $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
+    Local $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
     Global $ie_hwnd = _IEPropertyGet($ie_obj, "hwnd")
-    Global $ie_doc = _IEDocGetObj($ie_obj)
     WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
 EndFunc
 
@@ -56,7 +55,7 @@ Sets up ticket, calls given function to do details
 
     ; According to AutoIt documentation, Call() does not support ByRef params.
     ; But... it seems to work fine, so let's roll with it.
-    Call("_TicketType_" & $type, $ticket)
+    Call("_TicketType_" & $type, $ticket, GetPref("link_" & $type))
 EndFunc
 
 Func TicketExit()
@@ -71,10 +70,33 @@ EndFunc
 ; Names of these functions are based off of $ticket_struct variable names
 ; prefixed with '_TicketType_', so we can call them easily.
 
-Func _TicketType_s99(ByRef $ticket)
-    _TicketOpenTemplate($ticket)
-
+Func _TicketType_s99(ByRef $ticket, ByRef $type)
+    _TicketType_AutoClose($ticket, $type)
 EndFunc
+
+Func _TicketType_mo(ByRef $ticket, ByRef $type)
+    _TicketType_AutoClose($ticket, $type)
+EndFunc
+
+Func _TicketType_AutoClose(ByRef $ticket, ByRef $type)
+#CS
+Opens template dialog, selects given template.
+Loops through all links in template dialog to match the given type
+
+Input:
+$ticket - reference to IE object for the current ticket
+$type - type of ticket. String of link text. (Get from preferences)
+#CE
+    Local $template_dialog = _TicketOpenTemplate($ticket)
+    Local $link_collection = _IELinkGetCollection($template_dialog)
+    For $link In $link_collection
+        If $link.innerhtml == $type Then
+            _IEAction($link, "click")
+            Exit
+        EndIf
+    Next
+EndFunc
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Low-Level Ticket Procedures ;;
@@ -178,10 +200,22 @@ Opens template dialog in iSupport for given IE ticket obj
 Input:
     IE Ticket Object
 Returns:
-    Success: 1
+    Success: IE object for Template dialog
     Failure: 0
 #CE
-    _IENavigate($ticket, "javascript:useTemplate();")
+    Local Const $template_title = "Dialog - Use Incident Template"
+    _IENavigate($ticket, "javascript:useTemplate();", 0)
+    Local $result = WinWait($template_title, "", 5)
+    If $result = 0 Then
+        return 0
+    Else
+        Local $template = _IEAttach($result, "HWND")
+        If CheckError(@error, "_TicketOpenTemplate", "Unable to create IE object for Template Dialog") Then
+            return 0
+        EndIf
+        _IELoadWait($template)
+        return $template
+    EndIf
 EndFunc
 
 Func _TicketCloseCallScript()

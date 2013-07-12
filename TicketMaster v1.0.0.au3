@@ -20,10 +20,15 @@ But for most tickets, this shouldn't cause an issue and will keep memory
 usage low without resorting to multidimensional arrays.
 
 ADDING NEW TICKETS:
+TicketMaster File
 1. Make new Global Const TICKET variable
 2. Add to $ALL_TICKETS array
 3. Add to $ticket_struct_vars
+Utils
 4. Add to RouteArray
+TMProcedures
+5. Add High-Level Procedure
+
 
 ___________________________________________________________________________________
 TODO:
@@ -75,5 +80,5 @@ TMStart()
 ; Loop through arrays, call proper ticket procedure
 Func ProcessTickets()
     TicketInit()
-    TicketCreate(110, "s99")
+    TicketCreate(858, "s99")
 EndFunc
