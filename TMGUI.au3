@@ -4,8 +4,8 @@ Func TMInit()
     ; GUI Constants
     Local Const $WINDOW_WIDTH = 230, $WINDOW_HEIGHT = 250
     Local Const $BUTTON_WIDTH = 70, $BUTTON_HEIGHT = 40
-    Local Const $LIST_WIDTH = 100, $LIST_HEIGHT = 170
-    Local Const $INPUT_WIDTH = 100, $INPUT_HEIGHT = 215
+    Local Const $LIST_WIDTH = 110, $LIST_HEIGHT = 170
+    Local Const $INPUT_WIDTH = 105, $INPUT_HEIGHT = 215
 
     ; Used for saving input state when switching between tickets
     Global $LAST_TICKET_SELECTED = false
@@ -31,11 +31,11 @@ Func TMInit()
     Local $menu_help = GUICtrlCreateMenu("&Help")
 
     ;Other components
-    Global $list_main = GUICtrlCreateList("", 10, 10, $LIST_WIDTH, $LIST_HEIGHT)
+    Global $list_main = GUICtrlCreateList("", 5, 10, $LIST_WIDTH, $LIST_HEIGHT)
     GUICtrlSetData($list_main, $ALL_TICKETS_STRING)
-    Global $input_main = GUICtrlCreateInput("", 110, 0, $INPUT_WIDTH, $INPUT_HEIGHT, $ES_MULTILINE + $ES_WANTRETURN + $WS_VSCROLL)
+    Global $input_main = GUICtrlCreateInput("", 115, 0, $INPUT_WIDTH, $INPUT_HEIGHT, $ES_MULTILINE + $ES_WANTRETURN + $WS_VSCROLL)
     GUICtrlSetState($input_main, $GUI_DISABLE)  ; Disable input until a ticket category is selected
-    Global $button_go = GUICtrlCreateButton("Go", -95, 175, $BUTTON_WIDTH, $BUTTON_HEIGHT)
+    Global $button_go = GUICtrlCreateButton("Go", -95, 170, $BUTTON_WIDTH, $BUTTON_HEIGHT)
     GUICtrlSetState($button_go, $GUI_DISABLE)   ; Disable button until ticket is selected
 
     ; Bind Events!

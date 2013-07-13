@@ -15,7 +15,8 @@ Load IE to gwi7/rep
 Should be called once per session
 
 Returns:
-Fail
+    Success: 1
+    Failure: 0
 #CE
 
     Global $ie_obj = _IECreate("gwi7/rep", GetPref("ie_attach"))
@@ -30,6 +31,7 @@ Fail
     Else
         WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
     EndIf
+    return 1
 EndFunc
 
 Func TicketCreate($store, ByRef $type)
@@ -75,8 +77,7 @@ Sets up ticket, calls given function to do details
 EndFunc
 
 Func TicketExit()
-; Exits gracefully
-
+; Shows all errors that occurred
 EndFunc
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -239,7 +240,7 @@ Returns:
 #CE
     Local Const $template_title = "Dialog - Use Incident Template"
     _IENavigate($ticket, "javascript:useTemplate();", 0)
-    Local $result = WinWait($template_title, "", 10)
+    Local $result = WinWait($template_title, "", 30)
     If $result = 0 Then
         return 0
     Else

@@ -93,18 +93,28 @@ Local Const $ALL_TICKETS_STRING = _ArrayToString($ALL_TICKETS)
 ; Start the application
 TMStart()
 
-; Loop through arrays, call proper ticket procedure
 Func ProcessTickets()
-    TicketInit()
-    For $ticket In $ALL_TICKETS
-        Local $array = GetTicketArray($ticket)
-        For $i = 1 To $array[0]
-            ; Make sure we are sending a 3-digit store number to avoid
-            ; unwanted tickets being created.
-            If StringRegExp($array[$i], "\d{3}") Then
-                TicketCreate($array[$i], RouteArray($ticket))
+; Loop through arrays, call proper ticket procedure
+    Local $progpos = WinGetPos($window_main)
+    Local $progx = $progpos[0] - ($progpos[2] / 2)
+    Local $progy = $progpos[1]
+    If TicketInit() Then
+        For $ticket In $ALL_TICKETS
+            Local $array = GetTicketArray($ticket)
+            If $array[0] > 0 Then
+                ProgressOn("Processing Tickets", $ticket, "Store: " & "   /" & $array[0], $progx, $progy, 16)
+                For $i = 1 To $array[0]
+                    ; Make sure we are sending a 3-digit store number to avoid
+                    ; unwanted tickets being created.
+                    If StringRegExp($array[$i], "\d{3}") Then
+                        ProgressSet((($i - 1) / $array[0]) * 100, "Store: " & $array[$i] & "   " & $i & "/" & $array[0])
+                        TicketCreate($array[$i], RouteArray($ticket))
+                    EndIf
+                Next
+                ProgressSet(100, "Complete!", "Complete!   " & $array[0] & "/" & $array[0])
+                ProgressOff()
             EndIf
         Next
-    Next
-    TicketExit()
+        TicketExit()
+    EndIf
 EndFunc
