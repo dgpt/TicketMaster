@@ -23,14 +23,10 @@ Returns:
     If CheckError(@error, "TicketInit", "Failed to create main IE object") Then
         return 0
     EndIf
-    Local $attached = @extended
     Global $ie_hwnd = _IEPropertyGet($ie_obj, "hwnd")
-    If $attached Then
-        WinActivate($ie_hwnd)
-        Send("^1")
-    Else
-        WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
-    EndIf
+    WinActivate($ie_hwnd)
+    Send("^1")
+    ;WinSetState($ie_hwnd, "", @SW_MAXIMIZE)
     return 1
 EndFunc
 
@@ -104,6 +100,7 @@ Func _TicketType_mo(ByRef $ticket, ByRef $type)
 EndFunc
 
 ; NOT COMPLETE
+; Need to close the ticket
 Func _TicketType_dp(ByRef $ticket, ByRef $type)
     _TicketSelectTemplate($ticket, $type)
 EndFunc
@@ -243,7 +240,8 @@ Returns:
     Local $result = WinWait($template_title, "", 30)
     If $result = 0 Then
         return 0
-    Else
+    ElseIf IsHWnd($result) Then
+;*******; TODO: Strange bug around here... I'll get a 'no match' error on _IEAttach, have no clue why.
         Local $template = _IEAttach($result, "HWND")
         If CheckError(@error, "_TicketOpenTemplate", "Unable to create IE object for Template Dialog") Then
             return 0
