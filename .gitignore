@@ -1,4 +1,5 @@
 *.txt
 *.7z
+*.exe
 test/
 ref/
