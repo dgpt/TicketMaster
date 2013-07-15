@@ -95,23 +95,33 @@ TMStart()
 
 Func ProcessTickets()
 ; Loop through arrays, call proper ticket procedure
-    Local $progpos = WinGetPos($window_main)
-    Local $progx = $progpos[0] - ($progpos[2] / 2)
-    Local $progy = $progpos[1]
+    ; Set position vars for progress bar
+    Local $winpos = WinGetPos($window_main)
+    Local $progx = $winpos[0] + $winpos[2]
+    Local $progy = $winpos[1]
+    
+    Local $progformat = "Store: %u \t\t\t\t %u/%u"
+
+    ; Make sure ticket initializes before continuing
     If TicketInit() Then
+        ; Loop through all ticket types
         For $ticket In $ALL_TICKETS
+            ; Loop through the ticket type's array if there is information in the array
             Local $array = GetTicketArray($ticket)
             If $array[0] > 0 Then
-                ProgressOn("Processing Tickets", $ticket, "Store: " & "   /" & $array[0], $progx, $progy, 16)
+                ProgressOn("Processing Tickets", $ticket, StringFormat($progformat, $array[1], 1, $array[0]), $progx, $progy, 16)
                 For $i = 1 To $array[0]
                     ; Make sure we are sending a 3-digit store number to avoid
                     ; unwanted tickets being created.
                     If StringRegExp($array[$i], "\d{3}") Then
-                        ProgressSet((($i - 1) / $array[0]) * 100, "Store: " & $array[$i] & "   " & $i & "/" & $array[0])
+                        Local $progress = (($i - 1) / $array[0]) * 100
+                        ProgressSet($progress, StringFormat($progformat, $array[$i], $i, $array[0]))
                         TicketCreate($array[$i], RouteArray($ticket))
                     EndIf
                 Next
-                ProgressSet(100, "Complete!", "Complete!   " & $array[0] & "/" & $array[0])
+                ProgressSet(100, "Complete!", "Complete!")
+                ; Sleep so we can see the complete screen on progress bar
+                Sleep(1000)
                 ProgressOff()
             EndIf
         Next
