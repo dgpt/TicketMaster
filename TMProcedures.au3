@@ -237,11 +237,13 @@ Returns:
 #CE
     Local Const $template_title = "Dialog - Use Incident Template"
     _IENavigate($ticket, "javascript:useTemplate();", 0)
-    Local $result = WinWait($template_title, "", 30)
+    WinWait($template_title, "", 30)
+    Local $result = WinActivate($template_title)
     If $result = 0 Then
         return 0
     ElseIf IsHWnd($result) Then
 ;*******; TODO: Strange bug around here... I'll get a 'no match' error on _IEAttach, have no clue why.
+; STILL NOT FIXED
         Local $template = _IEAttach($result, "HWND")
         If CheckError(@error, "_TicketOpenTemplate", "Unable to create IE object for Template Dialog") Then
             return 0
