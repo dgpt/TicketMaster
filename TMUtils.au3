@@ -70,9 +70,11 @@ EndFunc
 
 ; Checks errors calls ErrMsg, makes code a little easier to read
 ; returns true if error occurred, false otherwise
-Func CheckError($error, $loc, $message = "")
+Func CheckError($error, $loc, $message = "", $silent = false)
     If $error Then
-        ErrMsg($error, $loc, $message)
+        If $silent == false Then
+            ErrMsg($error, $loc, $message)
+        EndIf
         return true
     Else
         return false
@@ -134,7 +136,7 @@ Func RouteArray($ticket)
         Case $ticket == $TICKET_GCO
             return "gco"
 
-        cASE $ticket == $TICKET_PROC
+        Case $ticket == $TICKET_PROC
             return "proc"
 
         Case Else

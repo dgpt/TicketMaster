@@ -249,6 +249,7 @@ Returns:
         _IELoadWait($template)
         return $template
     EndIf
+    return 0
 EndFunc
 
 Func _TicketSelectTemplate(ByRef $ticket, ByRef $type)

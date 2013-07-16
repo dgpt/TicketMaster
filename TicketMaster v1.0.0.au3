@@ -113,8 +113,7 @@ Func ProcessTickets()
                 For $i = 1 To $array[0]
                     ; Make sure we are sending a 3-digit store number to avoid
                     ; unwanted tickets being created.
-;*******************; TODO: This doesn't work properly... Accepts numbers > 3 digits
-                    If StringRegExp($array[$i], "\d{3}") Then
+                    If StringRegExp($array[$i], "^\d{3}$") Then
                         Local $progress = (($i - 1) / $array[0]) * 100
                         ProgressSet($progress, StringFormat($progformat, $array[$i], $i, $array[0]))
                         TicketCreate($array[$i], RouteArray($ticket))
