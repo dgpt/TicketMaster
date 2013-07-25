@@ -66,7 +66,7 @@ Sets up ticket, calls given function to do details
     ; According to AutoIt documentation, Call() does not support ByRef params.
     ; But... it seems to work fine, so let's roll with it.
     Call("_TicketType_" & $type, $ticket, GetPref("link_" & $type))
-    
+
     Sleep(1000)
     WinActivate($ie_hwnd)
     Send("^1")
@@ -158,7 +158,7 @@ Return:
     WinActivate($ie_hwnd)
     Send("^n")
     ; Wait for dialog pop up
-    Local $dialog_hwnd = WinWaitActive($dialog_title, "", GetPref("dialog_load_time"))
+    Local $dialog_hwnd = WinWait($dialog_title, "", GetPref("dialog_load_time"))
     If $dialog_hwnd = 0 Then
         SetError(6)
         return 0
@@ -178,6 +178,16 @@ Return:
         SetError(2)
         return 0
     EndIf
+
+    ; Make sure dialog is loaded before continuing.
+    _IELoadWait($dialog_obj)
+    If CheckError(@error, "_TicketOpen", "Error occurred while waiting for dialog to load.") Then
+        _IEQuit($dialog_obj)
+        _IEQuit($newTicket)
+        SetError(6)
+        return 0
+    EndIf
+
     Local $dialog_form = _IEFormGetObjByName($dialog_obj, "frmSelectCustomer") 
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create form object.") Then
         _IEQuit($dialog_obj)
@@ -268,6 +278,9 @@ Returns:
     Failure: 0
 #CE
     Local $template_dialog = _TicketOpenTemplate($ticket)
+    If $template_dialog == 0 Then
+        return 0
+    EndIf
     Local $link_collection = _IELinkGetCollection($template_dialog)
     For $link In $link_collection
         If $link.innerhtml == $type Then

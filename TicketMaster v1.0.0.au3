@@ -52,6 +52,9 @@ TICKET CREATION:
 - Gather up all errors with error code + store number. Display all errors at the end.
 - Watch for 'error' isupport pages, report those with errors.
 
+BUGS:
+01 : line 161 - Pausing script before/when dialog - select customer box comes up will make the WinWaitActive func timeout and cause TicketCreate to throw error code 6
+02 : - Script throwing error - not able to find dialog object or input object (varies). Suspected to be caused by iSupport slowness.
 #CE
 
 ; Options...
