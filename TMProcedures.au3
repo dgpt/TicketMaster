@@ -121,6 +121,18 @@ Func _TicketType_open(ByRef $ticket, ByRef $type)
     ; Do nothing
 EndFunc
 
+Func _TicketType_outlook_outage(ByRef $ticket, ByRef $type)
+    _TicketShortDescription($ticket, "Outlook Outage")
+    _TicketDescription($ticket, "Store reported chainwide Exchange Server outage.")
+    _TicketResolution($ticket, "Acknowledged report of known issue. The appropriate teams have resolved the issue.")
+    _TicketAddlInfo($ticket, "1")
+    _TicketStatus($ticket, "Closed")
+    _TicketImpact($ticket, "Store")
+    _TicketUrgency($ticket, 4)
+    _TicketPriority($ticket, 2)
+   ;_TicketCategory($ticket, "SUPPORT RETAIL SALES/OPERATIONS EMAIL DATA PROBLEM")
+EndFunc
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -294,3 +306,114 @@ EndFunc
 Func _TicketCloseCallScript()
 
 EndFunc
+
+Func _TicketShortDescription(ByRef $ticket, $text)
+#CS
+    Writes $text to $ticket's short description field
+    Returns:
+        Success: 1
+        Failure: 0
+#CE
+
+    Local $desc = _IEGetObjById($ticket, "uxTextBox_ShortDescription")
+    _IEPropertySet($desc, "innertext", $text)
+    If CheckError(@error, "_TicketShortDescription", "Could not write short description. Write it manually or close the ticket.") Then
+        return 0
+    Else
+        return 1
+    EndIf
+EndFunc
+
+Func _TicketDescription(ByRef $ticket, $text)
+#CS
+    Writes $text to $ticket's description field
+    Returns:
+        Success: 1
+        Failure: 0
+#CE
+    Local $desc = _IEGetObjById($ticket, "uxGwiEditor_Description_RadEditor2")
+
+    $desc.control._contentArea.innerText = $text
+
+EndFunc
+
+Func _TicketResolution(ByRef $ticket, $text)
+#CS
+    Writes $text to $ticket's resolution field
+    Returns:
+        Success: 1
+        Failure: 0
+#CE
+    Local $res = _IEGetObjById($ticket, "uxGwiEditor_Resolution_RadEditor2")
+
+    $res.control._contentArea.innerText = $text
+EndFunc
+
+Func _TicketAddlInfo(ByRef $ticket, $tier)
+    ; BAU id: CustomFields___cf1029_1
+    ; Tiers id: CustomFields___cf1031_0 (1) CustomFields___cf1031_1 (2) CustomFields___cf1031_2 (3)
+
+    Select
+        Case $tier == "1"
+            $tier = "CustomFields___cf1031_0"
+
+        Case $tier == "2"
+            $tier = "CustomFields___cf1031_1"
+
+        Case $tier == "3"
+            $tier = "CustomFields___cf1031_2"
+
+        Case Else
+            ErrMsg("Unknown Tier", "_TicketAddlInfo")
+    EndSelect
+
+    Local $t = _IEGetObjById($ticket, $tier)
+    Local $b = _IEGetObjById($ticket, "CustomFields___cf1029_1")
+
+    $t.checked = true;
+    $b.checked = true;
+EndFunc
+
+Func _TicketCategory(ByRef $ticket, $cat)
+
+    Local $c = _IEGetObjById($ticket, "uxHiddenField_CategoryText")
+    $c.value = $cat
+EndFunc
+
+Func _TicketStatus(ByRef $ticket, $status)
+#CS
+    Status Values
+    Accepted (Open)                - 1:17
+    Work in Progress (Open)        - 1:18
+    Resolved (open)                - 1:19
+    Clarification (open)           - 1:20
+    Pending UAT (open)             - 1:21
+    Open                           - 1:1
+    Open (In Progress) (Suspended) - 4:6
+    Suspended                      - 4:3
+    Closed                         - 2:2
+#CE
+    _IENavigate($ticket, "javascript:setStatus('Closed', 2, 2);", 0)
+EndFunc
+
+Func _TicketImpact(ByRef $ticket, $impact)
+    ; 1 = individual
+    ; 13 = store
+    Local $select = _IEGetObjById($ticket, "uxUIP_Select_uxDropDownList_Impact")
+    $select.value = "13"
+EndFunc
+
+Func _TicketUrgency(ByRef $ticket, $urgency)
+    Local $select = _IEGetObjById($ticket, "uxUIP_Select_uxDropDownList_Urgency")
+    $select.value = $urgency
+EndFunc
+
+Func _TicketPriority(ByRef $ticket, $priority)
+    Local $select = _IEGetObjById($ticket, "uxUIP_Select_uxDropDownList_Priority")
+    $select.value = $priority
+EndFunc
+
+#CS
+WorkItem.HandleSave(close)
+to save
+#CE

@@ -139,6 +139,9 @@ Func RouteArray($ticket)
         Case $ticket == $TICKET_PROC
             return "proc"
 
+        Case $ticket == $TICKET_OUTLOOK_OUTAGE
+            return "outlook_outage"
+
         Case Else
             MsgBox(0, "", "ERROR: RouteArray value not determined. Returning 'open'")
             return "open"

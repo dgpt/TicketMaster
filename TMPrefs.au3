@@ -7,7 +7,7 @@ Holds Prefs UI and various related things.
 ;; Mainly so we don't have to inject pref_struct into GetPref.
 ; Preference struct variable names need to match names in the config file
 Local Const $MAX_PREF_CHAR = 60
-Local Const $pref_struct_vars = StringReplace("char log_path[200]; uint log_append; uint ie_attach; uint dialog_sleep_time; uint dialog_load_time; uint ticket_load_time; char link_s99[%d]; char link_xfer[%d]; char link_nvm[%d]; char link_mo[%d]; char link_dp[%d]; char link_tcu[%d]; char link_gco[%d]; char link_proc[%d]; char link_open", "%d", $MAX_PREF_CHAR)
+Local Const $pref_struct_vars = StringReplace("char log_path[200]; uint log_append; uint ie_attach; uint dialog_sleep_time; uint dialog_load_time; uint ticket_load_time; char link_s99[%d]; char link_xfer[%d]; char link_nvm[%d]; char link_mo[%d]; char link_dp[%d]; char link_tcu[%d]; char link_gco[%d]; char link_proc[%d]; char link_open; char link_outlook_outage", "%d", $MAX_PREF_CHAR)
 Global $pref_struct = DllStructCreate($pref_struct_vars)
 ;DbgMsg("$pref_struct size: " & DllStructGetSize($pref_struct) & " bytes.")
 

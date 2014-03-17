@@ -68,7 +68,7 @@ Opt("GUIOnEventMode", 1)  ; enable the OnEvent function notifications
 ; Main Struct setup. Contains all arrays used for tickets.
 ; Max length for arrays
 Local Const $MAX_TICKET_INT = 90
-Local Const $ticket_struct_vars = StringReplace("uint s99[%d]; uint xfer[%d]; uint nvm[%d]; uint mo[%d]; uint dp[%d]; uint open[%d]; uint tcu[%d]; uint gco[%d]; uint proc[%d]", "%d", $MAX_TICKET_INT)
+Local Const $ticket_struct_vars = StringReplace("uint s99[%d]; uint xfer[%d]; uint nvm[%d]; uint mo[%d]; uint dp[%d]; uint open[%d]; uint tcu[%d]; uint gco[%d]; uint proc[%d]; uint outlook_outage[%d];", "%d", $MAX_TICKET_INT)
 Global $ticket_struct = DllStructCreate($ticket_struct_vars)
 ;DbgMsg("$ticket_struct size: " & DllStructGetSize($ticket_struct) & " bytes.")
 
@@ -86,9 +86,10 @@ Global Const $TICKET_DP = "DP"
 Global Const $TICKET_OPEN = "Open Tickets"
 Global Const $TICKET_TCU = "TC AD Unlock"
 Global Const $TICKET_GCO = "Gear Card Offset"
-Global const $TICKET_PROC = "Procedural Request"
+Global Const $TICKET_PROC = "Procedural Request"
+Global Const $TICKET_OUTLOOK_OUTAGE = "Outlook Outage"
 ; Constants listing all ticket types.
-Global Const $ALL_TICKETS[9] = [$TICKET_99, $TICKET_XFER, $TICKET_NVM, $TICKET_MO, $TICKET_DP, $TICKET_TCU, $TICKET_GCO, $TICKET_PROC, $TICKET_OPEN]
+Global Const $ALL_TICKETS[10] = [$TICKET_99, $TICKET_XFER, $TICKET_NVM, $TICKET_MO, $TICKET_DP, $TICKET_TCU, $TICKET_GCO, $TICKET_PROC, $TICKET_OPEN, $TICKET_OUTLOOK_OUTAGE]
 Local Const $ALL_TICKETS_STRING = _ArrayToString($ALL_TICKETS)
 
 
@@ -102,7 +103,7 @@ Func ProcessTickets()
     Local $winpos = WinGetPos($window_main)
     Local $progx = $winpos[0] + $winpos[2]
     Local $progy = $winpos[1]
-    
+
     Local $progformat = "Store: %u \t\t\t\t %u/%u"
 
     ; Make sure ticket initializes before continuing
