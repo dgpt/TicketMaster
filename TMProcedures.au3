@@ -51,6 +51,7 @@ Sets up ticket, calls given function to do details
     ; Make sure the ticket has loaded into iSupport before continuing
     ; Give it 5 seconds before throwing an error and returning.
     ; Use this nifty while loop to make it happen faster.
+#CS
     Local $loop_stopper = 0
     Local $loop_limit = GetPref("ticket_load_time")
     Local $loop_inc = 100
@@ -62,14 +63,14 @@ Sets up ticket, calls given function to do details
         Sleep($loop_inc)
         $loop_stopper += $loop_inc
     WEnd
-
+#CE
     ; According to AutoIt documentation, Call() does not support ByRef params.
     ; But... it seems to work fine, so let's roll with it.
     Call("_TicketType_" & $type, $ticket, GetPref("link_" & $type))
 
     Sleep(1000)
     WinActivate($ie_hwnd)
-    Send("^1")
+    ;Send("^1")
 EndFunc
 
 Func TicketExit()
@@ -168,13 +169,15 @@ Return:
     ; Activate main window, send <C-N> to make a new ticket (only supported in IE)
     ; Instead of JS injection, because it doesn't work right in IE
     WinActivate($ie_hwnd)
-    Send("^n")
+    ; Send("^n")
+    _IENavigate($ie_obj, "javascript:SocialDashboard.OpenEntityWindow(16, 0);", 0)
     ; Wait for dialog pop up
-    Local $dialog_hwnd = WinWait($dialog_title, "", GetPref("dialog_load_time"))
+    Local $dialog_hwnd = WinWait($dialog_title, "Dialog - Select Customer", GetPref("dialog_load_time"))
     If $dialog_hwnd = 0 Then
         SetError(6)
         return 0
     EndIf
+
     ; Create reference to new ticket
     Local $newTicket = _IEAttach($newTicket_title)
     If CheckError(@error, "_TicketOpen", "Error occurred while trying to create newTicket object.") Then
@@ -214,36 +217,25 @@ Return:
         SetError(4)
         return 0
     EndIf
+
     ; Enter store info in input
-    _IEFormElementSetValue($dialog_input, $store)
-    ; Allow iSupport to load the search...
-    Sleep(GetPref("dialog_sleep_time"))
-    ; Get object for top link to click on
-    Local $dialog_toplink = _IEGetObjById($dialog_obj, $dialog_toplink_id)
+    _IEAction($dialog_input, "focus")
+    Send($store)
     ; Check if $store is in the top link, if so click it
-    ; Otherwise, try one more time before error-ing out
-    If StringInStr(_IEPropertyGet($dialog_toplink, "outertext"), $store) Then
-        _IEAction($dialog_toplink, "click")
-        SetError(0)
-        return $newTicket
-    Else
-        Sleep(GetPref("dialog_sleep_time"))
-        $dialog_toplink = _IEGetObjById($dialog_obj, $dialog_toplink_id)
+    For $i = 0 to GetPref("dialog_sleep_time")
+        Sleep(10)
+        ; Get object for top link to click on
+        Local $dialog_toplink = _IEGetObjById($dialog_obj, $dialog_toplink_id)
         If StringInStr(_IEPropertyGet($dialog_toplink, "outertext"), $store) Then
             _IEAction($dialog_toplink, "click")
             SetError(0)
             return $newTicket
-        Else
-            _IEQuit($dialog_obj)
-            _IEQuit($newTicket)
-            SetError(1)
-            return 0
         EndIf
-    EndIf
+    Next
     ; Code shouldn't get down here, so return 0 and throw an error if it does
     _IEQuit($dialog_obj)
     _IEQuit($newTicket)
-    SetError(9)
+    SetError(1)
     return 0
 EndFunc
 
@@ -259,18 +251,12 @@ Returns:
 #CE
     Local Const $template_title = "Dialog - Use Incident Template"
     _IENavigate($ticket, "javascript:useTemplate();", 0)
-    WinWait($template_title, "", 30)
-    Local $result = WinActivate($template_title)
+    Local $result = WinWait($template_title)
+    WinActivate($result)
     If $result = 0 Then
         return 0
     ElseIf IsHWnd($result) Then
-;*******; TODO: Strange bug around here... I'll get a 'no match' error on _IEAttach, have no clue why.
-; STILL NOT FIXED
-        Local $template = _IEAttach($result, "HWND")
-        If CheckError(@error, "_TicketOpenTemplate", "Unable to create IE object for Template Dialog") Then
-            return 0
-        EndIf
-        _IELoadWait($template)
+        Local $template = _IEAttach($template_title)
         return $template
     EndIf
     return 0
@@ -290,9 +276,6 @@ Returns:
     Failure: 0
 #CE
     Local $template_dialog = _TicketOpenTemplate($ticket)
-    If $template_dialog == 0 Then
-        return 0
-    EndIf
     Local $link_collection = _IELinkGetCollection($template_dialog)
     For $link In $link_collection
         If $link.innerhtml == $type Then
